@@ -1,0 +1,26 @@
+{
+  "name": "@repo/env",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./client": "./src/client.ts",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "zod": "^4.1.5"
+  },
+  "dependencies": {
+    "@t3-oss/env-nextjs": "^0.13.8"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^24.8.1",
+    "eslint": "^9.38.0",
+    "typescript": "^5.9.2"
+  }
+}

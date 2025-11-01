@@ -1,0 +1,52 @@
+name: analog
+
+services:
+  db:
+    container_name: analog_db
+    image: bitnami/postgresql:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: analog_db
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - analog_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - analog_network
+
+  upstash-redis:
+    container_name: upstash-redis
+    image: hiett/serverless-redis-http:latest
+    ports:
+      - "8079:80"
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: upstash-local-token
+      SRH_CONNECTION_STRING: "redis://redis:6379"
+    env_file:
+      - .env
+    networks:
+      - analog_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  analog_network:
+    driver: bridge

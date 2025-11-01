@@ -1,0 +1,108 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "CI",
+        "NODE_ENV",
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "BETTER_AUTH_TELEMETRY",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_MAPS_API_KEY",
+        "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
+        "VERCEL_URL",
+        "NEXT_PUBLIC_VERCEL_URL",
+        "NEXT_PUBLIC_VERCEL_ENV",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "SIMPLE_ANALYTICS_HOSTNAME",
+        "NEXT_PUBLIC_SIMPLE_ANALYTICS_HOSTNAME",
+        "MICROSOFT_CLIENT_ID",
+        "MICROSOFT_CLIENT_SECRET",
+        "ZOOM_CLIENT_ID",
+        "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG",
+        "MARBLE_WORKSPACE_KEY",
+        "MARBLE_API_URL",
+        "UNKEY_ROOT_KEY",
+        "NEXT_RUNTIME",
+        "COMPOSIO_API_KEY",
+        "FIRECRAWL_API_KEY",
+        "BROWSERBASE_API_KEY"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false,
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "BETTER_AUTH_TELEMETRY",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_MAPS_API_KEY",
+        "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
+        "VERCEL_URL",
+        "NEXT_PUBLIC_VERCEL_URL",
+        "NEXT_PUBLIC_VERCEL_ENV",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "SIMPLE_ANALYTICS_HOSTNAME",
+        "NEXT_PUBLIC_SIMPLE_ANALYTICS_HOSTNAME",
+        "MICROSOFT_CLIENT_ID",
+        "MICROSOFT_CLIENT_SECRET",
+        "ZOOM_CLIENT_ID",
+        "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG",
+        "MARBLE_WORKSPACE_KEY",
+        "MARBLE_API_URL",
+        "UNKEY_ROOT_KEY",
+        "NEXT_RUNTIME",
+        "COMPOSIO_API_KEY",
+        "FIRECRAWL_API_KEY",
+        "BROWSERBASE_API_KEY"
+      ]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "type-check": {
+      "cache": false
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false,
+      "env": ["DATABASE_URL"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    },
+    "db:push": {
+      "cache": false,
+      "env": ["DATABASE_URL"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    },
+    "db:studio": {
+      "persistent": true,
+      "cache": false,
+      "env": ["DATABASE_URL"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    }
+  }
+}

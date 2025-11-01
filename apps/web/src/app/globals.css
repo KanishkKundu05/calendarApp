@@ -1,0 +1,345 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@utility titlebar-draggable {
+  -webkit-app-region: drag;
+}
+
+@utility titlebar-no-draggable {
+  -webkit-app-region: no-drag;
+}
+
+@utility titlebar-draggable-except-children {
+  -webkit-app-region: drag;
+  & > * {
+    -webkit-app-region: no-drag;
+  }
+}
+
+@custom-variant todesktop {
+  html.todesktop & {
+    @slot;
+  }
+}
+
+@custom-variant windows {
+  html.todesktop.todesktop-platform-win32 & {
+    @slot;
+  }
+}
+
+@custom-variant mac {
+  html.todesktop.todesktop-platform-darwin & {
+    @slot;
+  }
+}
+
+@custom-variant linux {
+  html.todesktop.todesktop-platform-linux & {
+    @slot;
+  }
+}
+
+:root,
+.light {
+  --background-landing: var(--color-neutral-50);
+  --background: var(--color-white);
+  --foreground: var(--color-neutral-950);
+  --card: var(--color-white);
+  --card-foreground: var(--color-neutral-950);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-neutral-950);
+  --primary: var(--color-neutral-900);
+  --primary-foreground: var(--color-neutral-50);
+  --secondary: var(--color-neutral-100);
+  --secondary-foreground: var(--color-neutral-900);
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-500);
+  --accent: var(--color-neutral-100);
+  --accent-foreground: var(--color-neutral-900);
+  --destructive: var(--color-red-600);
+  --destructive-foreground: var(--color-red-500);
+  --border: var(--color-neutral-200);
+  --input: var(--color-neutral-200);
+  --ring: var(--color-neutral-400);
+  --chart-1: var(--color-orange-600);
+  --chart-2: var(--color-teal-600);
+  --chart-3: var(--color-cyan-900);
+  --chart-4: var(--color-amber-400);
+  --chart-5: var(--color-amber-500);
+  --radius: 0.625rem;
+  --sidebar: var(--color-neutral-50);
+  --sidebar-foreground: var(--color-neutral-950);
+  --sidebar-primary: var(--color-neutral-900);
+  --sidebar-primary-foreground: var(--color-neutral-50);
+  --sidebar-accent: var(--color-neutral-100);
+  --sidebar-accent-foreground: var(--color-neutral-900);
+  --sidebar-border: var(--color-neutral-200);
+  --sidebar-ring: var(--color-neutral-400);
+  --avatar-gradient-top: var(--color-zinc-200);
+  --avatar-gradient-bottom: var(--color-zinc-100);
+  --analog-neutral: oklch(0.945 0 0);
+  --calendar-red: #fb2c36;
+  --calendar-orange: #ff6900;
+  --calendar-yellow: #f0b100;
+  --calendar-green: #00c950;
+  --calendar-blue: #2b7fff;
+  --calendar-purple: #ad46ff;
+}
+
+.dark {
+  --background-landing: color-mix(
+    in oklch,
+    var(--color-neutral-950) 90%,
+    var(--color-neutral-900)
+  );
+  --background: var(--color-neutral-900);
+  --foreground: var(--color-neutral-50);
+  --card: var(--color-neutral-900);
+  --card-foreground: var(--color-neutral-50);
+  --popover: var(--color-neutral-800);
+  --popover-foreground: var(--color-neutral-50);
+  --primary: var(--color-neutral-200);
+  --primary-foreground: var(--color-neutral-900);
+  --secondary: var(--color-neutral-800);
+  --secondary-foreground: var(--color-neutral-50);
+  --muted: var(--color-neutral-800);
+  --muted-foreground: var(--color-neutral-400);
+  --accent: var(--color-neutral-700);
+  --accent-foreground: var(--color-neutral-50);
+  --destructive: var(--color-red-400);
+  --border: color-mix(
+    in oklch,
+    var(--color-neutral-800) 50%,
+    var(--color-neutral-700)
+  );
+  --input: color-mix(
+    in oklch,
+    var(--color-neutral-800) 50%,
+    var(--color-neutral-700)
+  );
+  --ring: var(--color-neutral-500);
+  --chart-1: var(--color-blue-700);
+  --chart-2: var(--color-emerald-500);
+  --chart-3: var(--color-amber-500);
+  --chart-4: var(--color-purple-500);
+  --chart-5: var(--color-rose-500);
+  --sidebar: color-mix(
+    in oklch,
+    var(--color-neutral-900) 50%,
+    var(--color-neutral-800)
+  );
+  --sidebar-foreground: var(--color-neutral-50);
+  --sidebar-primary: var(--color-blue-500);
+  --sidebar-primary-foreground: var(--color-neutral-50);
+  --sidebar-accent: var(--color-neutral-800);
+  --sidebar-accent-foreground: var(--color-neutral-50);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: var(--color-neutral-600);
+  --avatar-gradient-top: color-mix(
+    in oklch,
+    var(--color-neutral-800) 50%,
+    var(--color-neutral-900) 50%
+  );
+  --avatar-gradient-bottom: var(--color-neutral-800);
+}
+
+@theme inline {
+  --color-background-landing: var(--background-landing);
+  --font-satoshi: var(--font-satoshi);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-avatar-gradient-top: var(--avatar-gradient-top);
+  --color-avatar-gradient-bottom: var(--avatar-gradient-bottom);
+  --background-color-event: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 20%
+  );
+  --background-color-event-selected: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 80%
+  );
+  --border-color-event: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 30%
+  );
+  --text-color-event: color-mix(
+    in oklab,
+    var(--foreground),
+    var(--calendar-color) 80%
+  );
+  --text-color-event-selected: color-mix(
+    in oklab,
+    var(--color-white),
+    var(--calendar-color) 0%
+  );
+  --background-color-event-hover: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 30%
+  );
+  --background-color-event-selected-hover: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 90%
+  );
+  --border-color-event-hover: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 40%
+  );
+  --color-analog-neutral: var(--analog-neutral);
+  --color-calendar-red: var(--calendar-red);
+  --color-calendar-orange: var(--calendar-orange);
+  --color-calendar-yellow: var(--calendar-yellow);
+  --color-calendar-green: var(--calendar-green);
+  --color-calendar-blue: var(--calendar-blue);
+  --color-calendar-purple: var(--calendar-purple);
+  --color-calendar-base: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-tint) 20%
+  );
+  --color-calendar-accent: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-tint) 30%
+  );
+  --color-calendar-foreground: color-mix(
+    in oklab,
+    var(--foreground),
+    var(--calendar-tint) 80%
+  );
+
+  --grid-event-form: 1em minmax(0, 1fr) 1em minmax(0, 1fr);
+
+  --font-weight-normal: 350;
+  --font-weight-medium: 400;
+  --font-weight-semibold: 500;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* tiptap editor */
+
+  .event-editor-content {
+    @apply w-full overflow-hidden;
+
+    /* prose mirror */
+    .ProseMirror {
+      @apply w-full min-w-max outline-none;
+    }
+
+    .mention {
+      @apply mr-0.5 rounded-sm px-1 py-0.5 text-sm font-medium;
+
+      &[data-id="mention-time"] {
+        @apply bg-green-500/10 text-green-500;
+      }
+
+      &[data-id="mention-duration"] {
+        @apply bg-orange-500/10 text-orange-500;
+      }
+
+      &[data-id="mention-date"] {
+        @apply bg-blue-500/10 text-blue-500;
+      }
+    }
+
+    p {
+      @apply leading-4;
+    }
+  }
+}
+
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(166, 160, 155, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.84) infinite;
+  will-change: transform;
+}
+
+.dark .animate-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(115, 115, 115, 0.35),
+    transparent
+  );
+}

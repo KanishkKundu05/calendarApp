@@ -1,0 +1,30 @@
+{
+  "name": "@repo/ai",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./lib/composio": "./src/lib/composio.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "ai": "^5.0.76",
+    "zod": "^4.0.5"
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "^2.6.0",
+    "@composio/core": "^0.1.55",
+    "@composio/vercel": "^0.2.11",
+    "@mendable/firecrawl-js": "^4.4.1",
+    "@repo/env": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^24.8.1",
+    "eslint": "^9.38.0",
+    "typescript": "^5.9.2"
+  }
+}
