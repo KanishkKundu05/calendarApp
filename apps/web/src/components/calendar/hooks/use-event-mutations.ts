@@ -169,6 +169,37 @@ export function useDeleteEventMutation() {
         return { previousEvents };
       },
       onError: (error, _, context) => {
+        // If the event is already deleted (410), treat it as success
+        // This can happen when:
+        // - The event was deleted concurrently
+        // - The event was just created and deleted quickly
+        // - The event was deleted via another client
+        const errorMessage = error.message?.toLowerCase() || "";
+        const errorData = (error as any)?.data;
+        const originalError = (error as any)?.originalError;
+        
+        const isAlreadyDeleted =
+          errorMessage.includes("410") ||
+          errorMessage.includes("resource has been deleted") ||
+          errorMessage.includes("deleted") ||
+          (errorData && typeof errorData === "object" && (
+            errorData.code === 410 ||
+            errorData.message?.toLowerCase().includes("deleted") ||
+            errorData.errors?.some((e: any) => 
+              e.reason === "deleted" || e.message?.toLowerCase().includes("deleted")
+            )
+          )) ||
+          (originalError && typeof originalError === "object" && (
+            originalError.status === 410 ||
+            originalError.message?.toLowerCase().includes("deleted")
+          ));
+
+        if (isAlreadyDeleted) {
+          // Don't show error toast or restore previous events
+          // The optimistic update already removed it from the UI
+          return;
+        }
+
         toast.error(error.message);
 
         if (context?.previousEvents) {
