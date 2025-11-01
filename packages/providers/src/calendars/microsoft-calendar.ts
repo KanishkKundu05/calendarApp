@@ -273,17 +273,79 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     calendar: Calendar,
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
-    return this.withErrorHandler("createEvent", async () => {
-      const createdEvent: MicrosoftEvent = await this.graphClient
-        .api(`${calendarPath(calendar.id)}/events`)
-        .post(toMicrosoftEvent(event));
+    const startTime = Date.now();
+    const eventData = {
+      accountId: this.accountId,
+      calendarId: calendar.id,
+      calendarName: calendar.name,
+      eventId: event.id,
+      eventTitle: event.title,
+      eventStart: event.start?.toString(),
+      eventEnd: event.end?.toString(),
+    };
 
-      return parseMicrosoftEvent({
-        event: createdEvent,
-        accountId: this.accountId,
-        calendar,
-      });
-    });
+    console.log("[MicrosoftCalendarProvider.createEvent] Starting", eventData);
+
+    return this.withErrorHandler("createEvent", async () => {
+      try {
+        const microsoftEventData = toMicrosoftEvent(event);
+        const apiPath = `${calendarPath(calendar.id)}/events`;
+        
+        console.log("[MicrosoftCalendarProvider.createEvent] Calling Microsoft Graph API", {
+          ...eventData,
+          apiPath,
+          microsoftEventDataKeys: Object.keys(microsoftEventData),
+        });
+
+        const createdEvent: MicrosoftEvent = await this.graphClient
+          .api(apiPath)
+          .post(microsoftEventData);
+
+        const duration = Date.now() - startTime;
+        console.log("[MicrosoftCalendarProvider.createEvent] Microsoft Graph API call succeeded", {
+          ...eventData,
+          createdEventId: createdEvent.id,
+          duration: `${duration}ms`,
+        });
+
+        return parseMicrosoftEvent({
+          event: createdEvent,
+          accountId: this.accountId,
+          calendar,
+        });
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        
+        // Log detailed error information
+        const errorInfo = {
+          ...eventData,
+          duration: `${duration}ms`,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorName: error instanceof Error ? error.name : undefined,
+          errorStack: error instanceof Error ? error.stack : undefined,
+        };
+
+        // Check if it's a network error
+        if (
+          error instanceof Error &&
+          (error.message.includes("fetch") ||
+            error.message.includes("network") ||
+            error.message.includes("NetworkError") ||
+            error.message.includes("Failed to fetch") ||
+            error.name === "NetworkError" ||
+            error.name === "TypeError")
+        ) {
+          console.error("[MicrosoftCalendarProvider.createEvent] Network error", {
+            ...errorInfo,
+            errorType: "network",
+          });
+        } else {
+          console.error("[MicrosoftCalendarProvider.createEvent] Error", errorInfo);
+        }
+
+        throw error;
+      }
+    }, eventData);
   }
 
   /**
@@ -422,7 +484,38 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     try {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
+      const errorDetails = {
+        operation,
+        provider: "microsoft",
+        accountId: this.accountId,
+        context,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorName: error instanceof Error ? error.name : undefined,
+        errorStack: error instanceof Error ? error.stack : undefined,
+      };
+
+      // Check for network errors
+      const isNetworkError =
+        error instanceof Error &&
+        (error.message.includes("fetch") ||
+          error.message.includes("network") ||
+          error.message.includes("NetworkError") ||
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("timed out") ||
+          error.message.includes("timeout") ||
+          error.name === "NetworkError" ||
+          error.name === "TypeError");
+
+      if (isNetworkError) {
+        console.error(`[MicrosoftCalendarProvider.withErrorHandler] Network error in ${operation}`, {
+          ...errorDetails,
+          errorType: "network",
+          // Include additional error properties if available
+          errorCause: error instanceof Error && "cause" in error ? error.cause : undefined,
+        });
+      } else {
+        console.error(`[MicrosoftCalendarProvider.withErrorHandler] Failed to ${operation}:`, errorDetails);
+      }
 
       throw new ProviderError(error as Error, operation, context);
     }

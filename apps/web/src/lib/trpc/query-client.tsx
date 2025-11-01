@@ -21,9 +21,12 @@ export function makeQueryClient() {
       },
       dehydrate: {
         serializeData: SuperJSON.serialize,
-        shouldDehydrateQuery: (query) =>
-          defaultShouldDehydrateQuery(query) ||
-          query.state.status === "pending",
+        shouldDehydrateQuery: (query) => {
+          // Only dehydrate queries that have succeeded
+          // Don't dehydrate pending queries as they may fail on hydration
+          // (e.g., if they require authentication that isn't available on the client)
+          return defaultShouldDehydrateQuery(query);
+        },
       },
       hydrate: {
         deserializeData: SuperJSON.deserialize,
@@ -44,6 +47,21 @@ export function makeQueryClient() {
             },
           });
 
+          return;
+        }
+
+        // Handle permission denied errors from APIs (e.g., Zoom API requiring authentication)
+        if (
+          error.message.includes("PERMISSION_DENIED") ||
+          error.message.includes("unregistered callers") ||
+          error.message.includes("API Key")
+        ) {
+          // Log but don't show error toast for these as they may be expected
+          // during hydration of queries that require authentication
+          console.warn(
+            "[QueryCache] Permission denied error (likely during hydration):",
+            error.message,
+          );
           return;
         }
 

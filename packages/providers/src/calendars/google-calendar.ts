@@ -314,12 +314,38 @@ export class GoogleCalendarProvider implements CalendarProvider {
     calendar: Calendar,
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
+    const startTime = Date.now();
+    const eventData = {
+      accountId: this.accountId,
+      calendarId: calendar.id,
+      calendarName: calendar.name,
+      eventId: event.id,
+      eventTitle: event.title,
+      eventStart: event.start?.toString(),
+      eventEnd: event.end?.toString(),
+    };
+
+    console.log("[GoogleCalendarProvider.createEvent] Starting", eventData);
+
     return this.withErrorHandler("createEvent", async () => {
       try {
+        const googleEventData = toGoogleCalendarEvent(event);
+        console.log("[GoogleCalendarProvider.createEvent] Calling Google API", {
+          ...eventData,
+          googleEventDataKeys: Object.keys(googleEventData),
+        });
+
         const createdEvent = await this.client.calendars.events.create(
           calendar.id,
-          toGoogleCalendarEvent(event),
+          googleEventData,
         );
+
+        const duration = Date.now() - startTime;
+        console.log("[GoogleCalendarProvider.createEvent] Google API call succeeded", {
+          ...eventData,
+          createdEventId: createdEvent.id,
+          duration: `${duration}ms`,
+        });
 
         return parseGoogleCalendarEvent({
           calendar,
@@ -327,6 +353,40 @@ export class GoogleCalendarProvider implements CalendarProvider {
           event: createdEvent,
         });
       } catch (error) {
+        const duration = Date.now() - startTime;
+        
+        // Log detailed error information
+        const errorInfo = {
+          ...eventData,
+          duration: `${duration}ms`,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorName: error instanceof Error ? error.name : undefined,
+          errorStack: error instanceof Error ? error.stack : undefined,
+        };
+
+        // Check if it's a network error
+        if (
+          error instanceof Error &&
+          (error.message.includes("fetch") ||
+            error.message.includes("network") ||
+            error.message.includes("NetworkError") ||
+            error.message.includes("Failed to fetch") ||
+            error.name === "NetworkError" ||
+            error.name === "TypeError")
+        ) {
+          console.error("[GoogleCalendarProvider.createEvent] Network error", {
+            ...errorInfo,
+            errorType: "network",
+          });
+        } else if (error instanceof ConflictError) {
+          console.log("[GoogleCalendarProvider.createEvent] Conflict detected, updating instead", {
+            ...errorInfo,
+            errorType: "conflict",
+          });
+        } else {
+          console.error("[GoogleCalendarProvider.createEvent] Error", errorInfo);
+        }
+
         // If the event already exists, update it instead of throwing an error
         if (error instanceof ConflictError) {
           return await this.updateEvent(calendar, event.id, event);
@@ -334,7 +394,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
         throw error;
       }
-    });
+    }, eventData);
   }
 
   async updateEvent(
@@ -523,7 +583,38 @@ export class GoogleCalendarProvider implements CalendarProvider {
     try {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
+      const errorDetails = {
+        operation,
+        provider: "google",
+        accountId: this.accountId,
+        context,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorName: error instanceof Error ? error.name : undefined,
+        errorStack: error instanceof Error ? error.stack : undefined,
+      };
+
+      // Check for network errors
+      const isNetworkError =
+        error instanceof Error &&
+        (error.message.includes("fetch") ||
+          error.message.includes("network") ||
+          error.message.includes("NetworkError") ||
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("timed out") ||
+          error.message.includes("timeout") ||
+          error.name === "NetworkError" ||
+          error.name === "TypeError");
+
+      if (isNetworkError) {
+        console.error(`[GoogleCalendarProvider.withErrorHandler] Network error in ${operation}`, {
+          ...errorDetails,
+          errorType: "network",
+          // Include additional error properties if available
+          errorCause: error instanceof Error && "cause" in error ? error.cause : undefined,
+        });
+      } else {
+        console.error(`[GoogleCalendarProvider.withErrorHandler] Failed to ${operation}:`, errorDetails);
+      }
 
       throw new ProviderError(error as Error, operation, context);
     }

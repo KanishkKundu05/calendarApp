@@ -7,6 +7,13 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const integrationsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
+    if (!composio) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "Composio is not configured. Please set COMPOSIO_API_KEY environment variable.",
+      });
+    }
+
     const connectedAccounts = await composio.connectedAccounts.list({
       userIds: [ctx.user.id],
     });
@@ -29,6 +36,13 @@ export const integrationsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!composio) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Composio is not configured. Please set COMPOSIO_API_KEY environment variable.",
+        });
+      }
+
       const request = await composio.toolkits.authorize(
         ctx.user.id,
         input.providerId,
@@ -47,6 +61,13 @@ export const integrationsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!composio) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Composio is not configured. Please set COMPOSIO_API_KEY environment variable.",
+        });
+      }
+
       const connectedAccounts = await composio.connectedAccounts.list({
         userIds: [ctx.user.id],
       });

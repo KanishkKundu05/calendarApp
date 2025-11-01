@@ -173,29 +173,128 @@ export const eventsRouter = createTRPCRouter({
   create: calendarProcedure
     .input(createEventInputSchema)
     .mutation(async ({ ctx, input }) => {
+      const startTime = Date.now();
+      const userId = ctx.user?.id;
+
+      console.log("[events.create] Starting event creation", {
+        userId,
+        accountId: input.accountId,
+        calendarId: input.calendarId,
+        eventId: input.id,
+        title: input.title,
+        start: input.start?.toString(),
+        end: input.end?.toString(),
+        providerId: input.providerId,
+      });
+
       const provider = ctx.providers.find(
         ({ account }) => account.accountId === input.accountId,
       );
 
       if (!provider?.client) {
+        console.error("[events.create] Provider not found", {
+          userId,
+          accountId: input.accountId,
+          availableProviders: ctx.providers.map((p) => ({
+            accountId: p.account.accountId,
+            providerId: p.account.providerId,
+          })),
+        });
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      const calendars = await provider.client.calendars();
+      console.log("[events.create] Provider found", {
+        userId,
+        accountId: input.accountId,
+        providerId: provider.account.providerId,
+      });
+
+      let calendars;
+      try {
+        calendars = await provider.client.calendars();
+        console.log("[events.create] Calendars fetched", {
+          userId,
+          accountId: input.accountId,
+          calendarCount: calendars.length,
+        });
+      } catch (error) {
+        console.error("[events.create] Failed to fetch calendars", {
+          userId,
+          accountId: input.accountId,
+          error: error instanceof Error ? error.message : String(error),
+          errorStack: error instanceof Error ? error.stack : undefined,
+        });
+        throw error;
+      }
 
       const calendar = calendars.find((c) => c.id === input.calendarId);
 
       if (!calendar) {
+        console.error("[events.create] Calendar not found", {
+          userId,
+          accountId: input.accountId,
+          calendarId: input.calendarId,
+          availableCalendarIds: calendars.map((c) => c.id),
+        });
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar not found for accountId: ${input.calendarId}`,
         });
       }
 
-      const event = await provider.client.createEvent(calendar, input);
+      console.log("[events.create] Calendar found, creating event", {
+        userId,
+        accountId: input.accountId,
+        calendarId: input.calendarId,
+        calendarName: calendar.name,
+      });
+
+      let event;
+      try {
+        event = await provider.client.createEvent(calendar, input);
+        const duration = Date.now() - startTime;
+        console.log("[events.create] Event created successfully", {
+          userId,
+          accountId: input.accountId,
+          calendarId: input.calendarId,
+          eventId: event.id,
+          duration: `${duration}ms`,
+        });
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        const errorDetails = {
+          userId,
+          accountId: input.accountId,
+          calendarId: input.calendarId,
+          duration: `${duration}ms`,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          errorName: error instanceof Error ? error.name : undefined,
+          errorStack: error instanceof Error ? error.stack : undefined,
+        };
+
+        // Check if it's a network error
+        if (
+          error instanceof Error &&
+          (error.message.includes("fetch") ||
+            error.message.includes("network") ||
+            error.message.includes("NetworkError") ||
+            error.message.includes("Failed to fetch") ||
+            error.name === "NetworkError" ||
+            error.name === "TypeError")
+        ) {
+          console.error("[events.create] Network error during event creation", {
+            ...errorDetails,
+            errorType: "network",
+          });
+        } else {
+          console.error("[events.create] Error during event creation", errorDetails);
+        }
+
+        throw error;
+      }
 
       return { event };
     }),

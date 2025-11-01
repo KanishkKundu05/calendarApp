@@ -24,16 +24,19 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
 
   const deleteEvent = React.useCallback(
     async (item: DeleteQueueItem) => {
-      const prevEvent = await getEventById(item.event.id);
-
-      if (!prevEvent) {
-        if (item.event?.type === "draft") {
+      // For draft events, check if they still exist in the local DB
+      // If not found, just remove the optimistic action and return
+      if (item.event?.type === "draft") {
+        const prevEvent = await getEventById(item.event.id);
+        if (!prevEvent) {
           removeOptimisticAction(item.optimisticId);
+          return;
         }
-
-        return;
       }
 
+      // For regular events, proceed with deletion even if not found in local DB
+      // (e.g., events older than 30 days that weren't synced)
+      // The event data needed for deletion is already available in item.event
       const eventId =
         item.event.recurringEventId && item.scope === "series"
           ? item.event.recurringEventId

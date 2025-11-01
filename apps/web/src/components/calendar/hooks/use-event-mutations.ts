@@ -37,7 +37,40 @@ export function useCreateEventMutation() {
 
         return { previousEvents };
       },
-      onError: (err, _, context) => {
+      onError: (err, newEvent, context) => {
+        const errorDetails = {
+          errorMessage: err.message,
+          errorName: err.name,
+          errorStack: err.stack,
+          eventData: {
+            accountId: newEvent.accountId,
+            calendarId: newEvent.calendarId,
+            eventId: newEvent.id,
+            title: newEvent.title,
+          },
+        };
+
+        // Check if it's a network error
+        const isNetworkError =
+          err.message.includes("fetch") ||
+          err.message.includes("network") ||
+          err.message.includes("NetworkError") ||
+          err.message.includes("Failed to fetch") ||
+          err.name === "NetworkError" ||
+          err.name === "TypeError";
+
+        if (isNetworkError) {
+          console.error("[useCreateEventMutation] Network error", {
+            ...errorDetails,
+            errorType: "network",
+            // Include tRPC error details if available
+            trpcError: err.data,
+            cause: err.cause,
+          });
+        } else {
+          console.error("[useCreateEventMutation] Error creating event", errorDetails);
+        }
+
         toast.error(err.message);
 
         if (context?.previousEvents) {

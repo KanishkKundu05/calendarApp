@@ -50,6 +50,29 @@ export const trpc = createTRPCClient<AppRouter>({
       enabled: (op) =>
         process.env.NEXT_PUBLIC_ENV === "development" ||
         (op.direction === "down" && op.result instanceof Error),
+      logger: (op) => {
+        if (op.direction === "down" && op.result instanceof Error) {
+          const isNetworkError =
+            op.result.message.includes("fetch") ||
+            op.result.message.includes("network") ||
+            op.result.message.includes("NetworkError") ||
+            op.result.message.includes("Failed to fetch") ||
+            op.result.name === "NetworkError" ||
+            op.result.name === "TypeError";
+
+          if (isNetworkError) {
+            console.error("[tRPC Client] Network error", {
+              type: op.type,
+              path: op.path,
+              id: op.id,
+              errorMessage: op.result.message,
+              errorName: op.result.name,
+              errorStack: op.result.stack,
+              errorType: "network",
+            });
+          }
+        }
+      },
     }),
     httpBatchStreamLink({
       transformer: superjson,
@@ -79,6 +102,29 @@ export function TRPCReactProvider(props: Readonly<TRPCReactProviderProps>) {
           enabled: (op) =>
             process.env.NEXT_PUBLIC_ENV === "development" ||
             (op.direction === "down" && op.result instanceof Error),
+          logger: (op) => {
+            if (op.direction === "down" && op.result instanceof Error) {
+              const isNetworkError =
+                op.result.message.includes("fetch") ||
+                op.result.message.includes("network") ||
+                op.result.message.includes("NetworkError") ||
+                op.result.message.includes("Failed to fetch") ||
+                op.result.name === "NetworkError" ||
+                op.result.name === "TypeError";
+
+              if (isNetworkError) {
+                console.error("[tRPC Client] Network error", {
+                  type: op.type,
+                  path: op.path,
+                  id: op.id,
+                  errorMessage: op.result.message,
+                  errorName: op.result.name,
+                  errorStack: op.result.stack,
+                  errorType: "network",
+                });
+              }
+            }
+          },
         }),
         httpBatchStreamLink({
           transformer: superjson,
