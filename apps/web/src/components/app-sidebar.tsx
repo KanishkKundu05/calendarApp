@@ -22,7 +22,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="sticky top-0 px-0">
           <SidebarGroupContent>
             <DatePicker />
-            {calendarSettings.easterEggsEnabled && <SubwaySurfers />}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
